@@ -15,6 +15,7 @@
     a <換行>
     ```：程式碼區塊
     `a`：單行程式碼
+    =a=：螢光筆
 
 
 <功能head>：需要媒介且有功能的Head。媒介如 `=>` 前方的元素。功能head：
@@ -72,3 +73,6 @@ I'm Red too too => color #ff0000;
 Is there only (I => color #ff0000)'m Red?
 
 <= I can be Red => color red;
+
+=a= => color red //紅色螢光色的背景 + 預設顏色的a字
+=(a => color red)= //預設顏色的螢光色背景 + a字染紅
