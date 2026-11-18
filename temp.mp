@@ -70,3 +70,5 @@ I'm Red => color red;
 I'm Red too => color #f00;
 I'm Red too too => color #ff0000;
 Is there only (I => color #ff0000)'m Red?
+
+<= I can be Red => color red;
