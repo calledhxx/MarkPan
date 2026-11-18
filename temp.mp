@@ -76,3 +76,4 @@ Is there only (I => color #ff0000)'m Red?
 
 =a= => color red //紅色螢光色的背景 + 預設顏色的a字
 =(a => color red)= //預設顏色的螢光色背景 + a字染紅
+I'm =important= => color red //前方I'm為紅色的字，important為紅色螢光色的背景 + 預設顏色的a字
