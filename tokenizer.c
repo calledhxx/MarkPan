@@ -54,16 +54,22 @@ object_carrier_t stream_to_objects(FILE * const stream, char const FLAG_OF_END)
     char c = 0;
     int ctype = 0;
 
+    char last_c = 0;
+    int last_ctype = 0;
+
+
     struct
     {
         //
         unsigned int BodyRecording:1;
         unsigned int HeadAttributesRecording:1;
-        unsigned int HeadAttributesValueRecording:1;
+        char * HeadAttributesKeyNameRecording;
+        unsigned int HeadAttributesValueUnitRecording:1;
         //
 
         section_attribute_t SectionAttributes;
         head_attribute_t HeadAttributes;
+        dimension_t Dimension ;
 
         int Handler;
     } state = {0};
@@ -97,22 +103,74 @@ object_carrier_t stream_to_objects(FILE * const stream, char const FLAG_OF_END)
                         state.HeadAttributesRecording = 0;
                     }else
                     {
-                        if (state.HeadAttributesValueRecording) //紀錄value或是,
+                        if (state.HeadAttributesKeyNameRecording) //紀錄value或是,
                         {
                             if (c == ',')
                             {
-                                state.HeadAttributesValueRecording = 0;
-                            }else
-                            {
+                                state.HeadAttributesKeyNameRecording = 0;
+
+                                //name是單位
                                 ++name_length;
                                 name = realloc(name, name_length * sizeof(char));
-                                name[name_length - 1] = c;
+                                name[name_length - 1] = 0;
+
+                                state.Dimension.unit = memcpy(
+                                malloc(sizeof(char) * name_length),
+                                name,
+                                sizeof(char) * name_length
+                                );
+
+                                name_length = 0;
+                                free(name);
+                                name = NULL;
+
+                                if (strcmp(state.HeadAttributesKeyNameRecording,"width")==0)
+                                {
+                                    state.HeadAttributes.width = state.Dimension;
+                                    state.Dimension = (dimension_t){0};
+                                }
+                            }else
+                            {
+                                if (last_ctype == CHARACTER_TYPE_NUMBER && ctype == CHARACTER_TYPE_NORMAL)
+                                {
+                                    state.HeadAttributesValueUnitRecording = 1;
+
+                                    //name是純值
+                                    ++name_length;
+                                    name = realloc(name, name_length * sizeof(char));
+                                    name[name_length - 1] = 0;
+
+                                    state.Dimension.value = strtol(name,0,10);
+
+                                    name_length = 0;
+                                    free(name);
+                                    name = NULL;
+                                }
+
+                                if (state.HeadAttributesValueUnitRecording)
+                                {
+                                    ++name_length;
+                                    name = realloc(name, name_length * sizeof(char));
+                                    name[name_length - 1] = c;
+                                }
                             }
                         }else //紀錄key或是=
                         {
                             if (c == '=')
                             {
-                                state.HeadAttributesValueRecording = 1;
+                                ++name_length;
+                                name = realloc(name, name_length * sizeof(char));
+                                name[name_length - 1] = 0;
+
+                                state.HeadAttributesKeyNameRecording = memcpy(
+                                malloc(sizeof(char) * name_length),
+                                name,
+                                sizeof(char) * name_length
+                                );
+
+                                name_length = 0;
+                                free(name);
+                                name = NULL;
                             }else
                             {
                                 ++name_length;
@@ -162,6 +220,8 @@ object_carrier_t stream_to_objects(FILE * const stream, char const FLAG_OF_END)
             }
         }
 
+        last_c = c;
+        last_ctype = ctype;
     } while (c == FLAG_OF_END);
 
     return result;
