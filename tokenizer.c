@@ -131,7 +131,7 @@ object_carrier_t stream_to_objects(FILE * const stream, char const FLAG_OF_END)
                                 }
                             }else
                             {
-                                if (last_ctype == CHARACTER_TYPE_NUMBER && ctype == CHARACTER_TYPE_NORMAL)
+                                if (ctype == CHARACTER_TYPE_NORMAL)
                                 {
                                     state.HeadAttributesValueUnitRecording = 1;
 
