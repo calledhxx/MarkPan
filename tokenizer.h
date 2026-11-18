@@ -22,27 +22,31 @@ typedef struct dimension_s
     double value;
 } dimension_t;
 
+typedef struct section_attribute_s
+{
+    unsigned int bold:1;
+    unsigned int italic:1;
+    unsigned int underline:1;
+    unsigned int spoiler:1;
+} section_attribute_t;
+
 typedef struct section_s
 {
     char* content;
-    struct
-    {
-        unsigned int bold:1;
-        unsigned int italic:1;
-        unsigned int underline:1;
-        unsigned int spoiler:1;
-    } attributes;
+    section_attribute_t attributes;
 } section_t;
+
+typedef struct head_attribute_s
+{
+    dimension_t width;
+    dimension_t height;
+    char* method;
+} head_attribute_t;
 
 typedef struct head_s
 {
     char* head;
-    struct
-    {
-        dimension_t width;
-        dimension_t height;
-        char* method;
-    } attributes;
+    head_attribute_t attributes;
 } head_t;
 
 typedef struct body_s

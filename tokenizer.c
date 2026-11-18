@@ -2,6 +2,7 @@
 #include "tokenizer.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 
 int static char_type(char const c)
@@ -58,7 +59,11 @@ object_carrier_t stream_to_objects(FILE * const stream, char const FLAG_OF_END)
         //
         unsigned int BodyRecording:1;
         unsigned int HeadAttributesRecording:1;
+        unsigned int HeadAttributesValueRecording:1;
         //
+
+        section_attribute_t SectionAttributes;
+        head_attribute_t HeadAttributes;
 
         int Handler;
     } state = {0};
@@ -85,25 +90,72 @@ object_carrier_t stream_to_objects(FILE * const stream, char const FLAG_OF_END)
                 name[name_length - 1] = c;
             }else
             {
-                if (state.HeadAttributesRecording)
+                if (state.HeadAttributesRecording) //已經在紀錄屬性了
                 {
                     if (c == '}') //Head屬性記錄結束
                     {
                         state.HeadAttributesRecording = 0;
                     }else
                     {
-                        ++name_length;
-                        name = realloc(name, name_length * sizeof(char));
-                        name[name_length - 1] = c;
+                        if (state.HeadAttributesValueRecording) //紀錄value或是,
+                        {
+                            if (c == ',')
+                            {
+                                state.HeadAttributesValueRecording = 0;
+                            }else
+                            {
+                                ++name_length;
+                                name = realloc(name, name_length * sizeof(char));
+                                name[name_length - 1] = c;
+                            }
+                        }else //紀錄key或是=
+                        {
+                            if (c == '=')
+                            {
+                                state.HeadAttributesValueRecording = 1;
+                            }else
+                            {
+                                ++name_length;
+                                name = realloc(name, name_length * sizeof(char));
+                                name[name_length - 1] = c;
+                            }
+                        }
+
                     }
-                }else
+                }else //還沒紀錄屬性
                 {
                     if (c == '{') //開始記錄Head屬性
                     {
                         state.HeadAttributesRecording = 1;
-                    }else //不規範在Head紀錄裡 理解為Body
+
+                    }else //不規範在Head紀錄裡 理解為Body 結束當前Head
                     {
                         state.BodyRecording = 1;
+
+                        ++name_length;
+                        name = realloc(name, name_length * sizeof(char));
+                        name[name_length - 1] = 0;
+
+                        ++result.objects_count;
+                        result.objects = realloc(
+                            result.objects,
+                            result.objects_count * sizeof(object_t));
+                        result.objects[result.objects_count - 1] = (object_t){
+                            .head = (head_t){
+                                .head = memcpy(
+                                malloc(sizeof(char) * name_length),
+                                name,
+                                sizeof(char) * name_length
+                                ),
+                                .attributes = state.HeadAttributes,
+                            }
+                        };
+
+                        state.HeadAttributes = (head_attribute_t){0};
+
+                        name_length = 0;
+                        free(name);
+                        name = NULL;
                     }
                 }
 
